@@ -1,4 +1,4 @@
 # 忽略虚拟环境文件
-dataset
+dataset/*
 venv
 .env

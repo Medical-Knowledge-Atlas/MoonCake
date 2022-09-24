@@ -14,4 +14,3 @@ python install -r requirements.txt
 ```shell
 python main.py
 ```
-# MoonCake
