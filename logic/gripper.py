@@ -3,7 +3,7 @@
 """
 import os
 
-from utils.db_utils import MongoDriver
+from utils.db_utils import MongoDriver, RedisDriver
 from utils.parsing import Parsing, parse_entity
 
 
@@ -12,10 +12,12 @@ class Gripper:
     拉取、分发数据
     """
 
-    def __init__(self, f_type='file', path=None, db=None, col=None, hots=None, port=None):
+    def __init__(self, f_type='file', path=None, db=None, col=None, hots=None, port=None,
+                 r_host=None, r_port=None, r_pwd=None):
         self.parsing = Parsing(f_type, path, db, col, hots, port)
         self.regulation_paths = os.listdir('./pattern')
         self.db = MongoDriver(db, col, hots, port)
+        self.redis = RedisDriver(hots=r_host, port=r_port, pwd=r_pwd)
 
     def start(self, regulation_path=None, end_count=10):
         count = 0
@@ -25,11 +27,10 @@ class Gripper:
             print('===' * 20, f'\n拉取数据成功，开始解析...')
             self.regulation_paths = self.regulation_paths if not regulation_path else [regulation_path]
             print(f'解析正文: {data["mainbody"]}')
-            # todo: 将当前解析数据缓存如redis
             for path in self.regulation_paths:
                 regulations = self.parsing.load_regulation(path)
                 colum_name = path.split('.')[0]
-                entity = parse_entity(data['mainbody'], regulations, colum_name)
+                entity = parse_entity(data, regulations, colum_name)
                 if entity:
                     print('解析成功')
                     success += 1
