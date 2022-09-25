@@ -1,4 +1,5 @@
 import pymongo
+import redis
 
 from conf import settings
 
@@ -25,5 +26,30 @@ class MongoDriver:
             self.col.update_one({"_id": data["_id"]}, {'$setOnInsert': data}, upsert=True)
 
 
+class RedisDriver:
+    def __init__(self, hots=None, port=None, pwd=None):
+        hots = settings.REDIS_HOST if not hots else hots
+        port = settings.REDIS_PORT if not port else port
+        pwd = settings.REDIS_PSW if not pwd else pwd
+        self.r = redis.Redis(host=hots, port=port, db=0, password=pwd)
+
+    def set(self, k, v, timeout:int = None):
+        if not timeout:
+            self.r.set(k, v)
+        elif type(timeout) is int:
+            self.r.setex(k, timeout, v)
+        else:
+            print('格式错误')
+
+    def get(self, k):
+        v = self.r.get(k)
+        if v:
+            return v.decode('utf-8')
+        return v
+
+
 if __name__ == '__main__':
-    MongoDriver().get_data()
+    # MongoDriver().get_data()
+    redis_col = RedisDriver()
+    redis_col.set('abc', 123)
+    print(redis_col.get('abc'))

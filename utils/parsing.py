@@ -76,29 +76,29 @@ def load_test(function):
 
 
 @load_test
-def parse_entity(text: str = '', patterns: List = [], filter_name: str = None, is_re=True) -> list:
+def parse_entity(data: dict = '', patterns: List = [], filter_name: str = None, is_re=True) -> list:
     """
     从正文中解析出供应商名称
-    :param filter_name:
+    :param filter_name: 第二层解析函数的名称/解析字段的名称/解析字段规则文件名称
     :param patterns: 匹配模式
-    :param text:正文
+    :param data: 待解析字段所在的字典，包含title，time，mainbody等
     :return: 匹配结果
     """
+    text = data['mainbody']
     entities = []
-    # todo: 从缓存中读取当前解析内容上下文
     if is_re:
         if not any([text, patterns]):
             print('缺少正文/匹配模式,匹配结束')
             return entities
         for pattern in patterns:
-            data = re.findall(pattern.strip(), text.strip())
-            if not data:
+            ret = re.findall(pattern.strip(), text.strip())
+            if not ret:
                 continue
-            entities.append(data[0].strip())
+            entities.append(ret[0].strip())
     else:
         entities = text
     fun = getattr(Filter(), filter_name)
-    entities = fun(entities) if fun else entities
+    entities = fun(entities, data) if fun else entities
     return entities
 
 
